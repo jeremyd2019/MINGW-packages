@@ -6,7 +6,7 @@ _realname=binutils
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 pkgver=2.35
-pkgrel=6
+pkgrel=7
 pkgdesc="A set of programs to assemble and manipulate binary and object files (mingw-w64)"
 arch=('any')
 url="https://www.gnu.org/software/binutils/"
@@ -28,7 +28,6 @@ source=(https://ftp.gnu.org/gnu/binutils/${_realname}-${pkgver}.tar.xz{,.sig}
         1002-mingw-plugin-test-regressions-due-to-commit-514b4e19.patch
         1003-Fixes-for-testsuite-failures-introduced-by-the-chang.patch
         1004-Pass-disable-reloc-section-on-PE-targets-for-PR-2566.patch
-        2000-Temporarily-revert-default-dll-characteristics.patch
         2001-ld-option-to-move-default-bases-under-4GB.patch
         2002-Don-t-crash-if-asked-to-create-an-empty-implib.patch)
 sha256sums=('1b11659fb49e20e18db460d44485f09442c8c56d5df165de9461eb09c8302f85'
@@ -43,7 +42,6 @@ sha256sums=('1b11659fb49e20e18db460d44485f09442c8c56d5df165de9461eb09c8302f85'
             '111a7385b93e9f1bf97503fe354ebe50f9be4b6d25cbb8678dde45df5e29ee8a'
             '57a61ac664027bed5da848a16af2ea3ad63e820d7db2d24588c33168d93276bb'
             'dc3724a9f42db77b38cb5db78aeaf3f92dbe8ea630db80e73135e9358d1e55c9'
-            'a9b0e140a34032a67a051d693460b10c03f1a1361c210e687a214d0505deb494'
             'b790b09db892a1acde82bfe570ca52b50ed2ca98e6a99254cc8a8528eb87f8b2'
             'f37671f4d571d4b5477979798887d245c2e163a6e247591a01761b136c673eaa')
 validpgpkeys=('EAF1C276A747E9ED86210CBAC3126D3B4AE55E93'
@@ -63,8 +61,6 @@ prepare() {
   patch -p1 -i "${srcdir}"/1003-Fixes-for-testsuite-failures-introduced-by-the-chang.patch
   patch -p1 -i "${srcdir}"/1004-Pass-disable-reloc-section-on-PE-targets-for-PR-2566.patch
 
-  # Temporarily revert defaults change while testing.
-  patch -p1 -i "${srcdir}"/2000-Temporarily-revert-default-dll-characteristics.patch
   # Add an option to change default bases back below 4GB to ease transition
   patch -p1 -i "${srcdir}"/2001-ld-option-to-move-default-bases-under-4GB.patch
   # https://sourceware.org/bugzilla/show_bug.cgi?id=26588

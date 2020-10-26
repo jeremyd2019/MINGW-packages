@@ -24,7 +24,7 @@ pkgver=10.2.0
 #_majorver=${pkgver:0:1}
 #_sourcedir=${_realname}-${_majorver}-${_snapshot}
 _sourcedir=${_realname}-${pkgver}
-pkgrel=6
+pkgrel=7
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 url="https://gcc.gnu.org"
@@ -67,6 +67,7 @@ source=("https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver%%+*}/${_realname}-${p
         0021-gcc-config-i386-mingw32.h-Ensure-lmsvcrt-precede-lke.patch
         0022-jit-port-libgccjit-to-Windows.patch
         0023-gcc-jit-Rename-libgccjit.dll-to-libgccjit-0.dll.patch
+        0024-windows-__thiscall-__cxa_thread_atexit.patch
         0130-libstdc++-in-out.patch
         0140-gcc-8.2.0-diagnostic-color.patch
         0150-gcc-10.2.0-libgcc-ldflags.patch
@@ -91,6 +92,7 @@ sha256sums=('b8dd4368bb9c7f0b98188317ee0254dd8cc99d1e3a18d0ff146c855fe16c1d8c'
             'c7359f4c7015bc1fb02bc13449fa9826669273bd1f0663ba898decb67e8487fc'
             '61554e1ace26a7638a029c87ca360de9d8efbbe258f2fe84c0635a6c446d19a9'
             '35715ec552eb262dc9d7cb8ee70215bacce47e7281ee4f45bd959fdeadac56e1'
+            '474c7f36231434490efd195ca9485c482cdb2ee922a4486ed6addcc8e30ac3e4'
             '055289699c4222ef0b8125abdc8c9ceeff0712876c86e6d552a056fbacc14284'
             '5240a9e731b45c17a164066c7eb193c1fbee9fd8d9a2a5afa2edbcde9510da47'
             '7f0b4e45d933e18c9d8bd2afcd83e4f52e97e2e25dd41bfa0cba755c70e591c7'
@@ -142,7 +144,8 @@ prepare() {
     0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch \
     0021-gcc-config-i386-mingw32.h-Ensure-lmsvcrt-precede-lke.patch \
     0022-jit-port-libgccjit-to-Windows.patch \
-    0023-gcc-jit-Rename-libgccjit.dll-to-libgccjit-0.dll.patch
+    0023-gcc-jit-Rename-libgccjit.dll-to-libgccjit-0.dll.patch \
+    0024-windows-__thiscall-__cxa_thread_atexit.patch
 
   apply_patch_with_msg \
     0130-libstdc++-in-out.patch
@@ -208,6 +211,8 @@ build() {
   local _LDFLAGS_FOR_TARGET="$LDFLAGS"
   LDFLAGS+=" -Wl,--disable-dynamicbase"
 
+  # test #7096
+  export ac_cv_func___cxa_thread_atexit=no
   ../${_sourcedir}/configure \
     --prefix=${MINGW_PREFIX} \
     --with-local-prefix=${MINGW_PREFIX}/local \

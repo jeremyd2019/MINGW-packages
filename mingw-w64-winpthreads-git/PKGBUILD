@@ -6,7 +6,7 @@ _realname=winpthreads
 pkgbase=mingw-w64-${_realname}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
 pkgver=9.0.0.6029.ecb4ff54
-pkgrel=1
+pkgrel=2
 _commit='ecb4ff5498dfedd6abcbadb889b84fab19ee57b2'
 pkgdesc="MinGW-w64 winpthreads library"
 url="https://mingw-w64.sourceforge.io/"
@@ -23,9 +23,11 @@ makedepends=("git"
              "${MINGW_PACKAGE_PREFIX}-headers-git")
 options=('strip' 'staticlibs' '!emptydirs' '!debug')
 source=("mingw-w64"::"git+https://git.code.sf.net/p/mingw-w64/mingw-w64#commit=$_commit"
-        "0001-Define-__-de-register_frame_info-in-fake-libgcc_s.patch")
+        "0001-Define-__-de-register_frame_info-in-fake-libgcc_s.patch"
+        "tls_dtors.patch")
 sha256sums=('SKIP'
-            'd9e8af81682d9bf70e3d87506f51156cec61260b810a234bce861cb2eb3a5919')
+            'd9e8af81682d9bf70e3d87506f51156cec61260b810a234bce861cb2eb3a5919'
+            '5a85ca8314c42e557d5f67c092bc12d3be3078c4801e99e493505ffddeee676d')
 
 pkgver() {
   cd "${srcdir}/mingw-w64"
@@ -39,6 +41,7 @@ prepare() {
   cd "${srcdir}/mingw-w64"
   [[ -f mingw-w64-libraries/winpthreads/src/libgcc/dll_frame_info.c ]] && rm -rf mingw-w64-libraries/winpthreads/src/libgcc/dll_frame_info.c
   git am --committer-date-is-author-date "${srcdir}"/0001-Define-__-de-register_frame_info-in-fake-libgcc_s.patch
+  git am --committer-date-is-author-date "${srcdir}"/tls_dtors.patch
 
   cd "${srcdir}"/mingw-w64/mingw-w64-libraries/winpthreads
   autoreconf -vfi

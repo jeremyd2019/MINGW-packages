@@ -1,0 +1,248 @@
+From martin@martin.st Wed Oct 28 03:20:29 2020
+Date: Wed, 28 Oct 2020 11:24:49 +0200
+From: Martin Storsjö <martin@martin.st>
+Reply-To: mingw-w64-public@lists.sourceforge.net
+To: mingw-w64-public@lists.sourceforge.net
+Subject: [Mingw-w64-public] [PATCH 1/3] crt: Don't run TLS destructors for the main thread if exiting via _exit or ExitProcess
+
+For these cases, the TLS destructors are normally executed by
+the callback set up by _register_thread_local_exe_atexit_callback,
+but if this is bypassed (if exiting via _exit or ExitProcess),
+skip these callbacks.
+
+This differs from what MSVC does, but matches what the C++ standard
+says should happen.
+
+Signed-off-by: Martin Storsjö <martin@martin.st>
+---
+ mingw-w64-crt/crt/tls_atexit.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/mingw-w64-crt/crt/tls_atexit.c b/mingw-w64-crt/crt/tls_atexit.c
+index 1062106de..27ffb84ca 100644
+--- a/mingw-w64-crt/crt/tls_atexit.c
++++ b/mingw-w64-crt/crt/tls_atexit.c
+@@ -124,12 +124,12 @@ static void WINAPI tls_callback(HANDLE hDllHandle, DWORD dwReason, LPVOID __UNUS
+      * main, or when a DLL is unloaded), and when exiting bypassing some of
+      * the cleanup, by calling _exit or ExitProcess. In the latter cases,
+      * destructors (both TLS and global) in loaded DLLs still get called,
+-     * but only TLS destructors get called for the main executable, global
+-     * variables' destructors don't run. (This matches what MSVC does with
+-     * a dynamically linked CRT.)
++     * but none get called for the main executable. This matches what the
++     * standard says, but differs from what MSVC does with a dynamically
++     * linked CRT (which still runs TLS destructors for the main thread).
+      */
+-    run_dtor_list(&tls_dtors);
+     if (__mingw_module_is_dll) {
++      run_dtor_list(&tls_dtors);
+       /* For DLLs, run dtors when detached. For EXEs, run dtors via the
+        * thread local atexit callback, to make sure they don't run when
+        * exiting the process with _exit or ExitProcess. */
+-- 
+2.17.1
+
+
+
+_______________________________________________
+Mingw-w64-public mailing list
+Mingw-w64-public@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/mingw-w64-public
+
+From martin@martin.st Wed Oct 28 02:56:49 2020
+Date: Wed, 28 Oct 2020 11:24:50 +0200
+From: Martin Storsjö <martin@martin.st>
+Reply-To: mingw-w64-public@lists.sourceforge.net
+To: mingw-w64-public@lists.sourceforge.net
+Subject: [Mingw-w64-public] [PATCH 2/3] crt: Make tls_atexit run before __mingw_TLScallback
+
+If libgcc was built with the win32 thread model, the emutls allocations
+are freed via __mingw_TLScallback, which is hooked up at .CRT$XLD;
+move the tls_atexit callback before this, to make sure TLS destructors
+are run before their memory is freed by emutls.
+
+Signed-off-by: Martin Storsjö <martin@martin.st>
+---
+ mingw-w64-crt/crt/tls_atexit.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mingw-w64-crt/crt/tls_atexit.c b/mingw-w64-crt/crt/tls_atexit.c
+index 27ffb84ca..1241b5673 100644
+--- a/mingw-w64-crt/crt/tls_atexit.c
++++ b/mingw-w64-crt/crt/tls_atexit.c
+@@ -148,4 +148,4 @@ static void WINAPI tls_callback(HANDLE hDllHandle, DWORD dwReason, LPVOID __UNUS
+   }
+ }
+ 
+-_CRTALLOC(".CRT$XLE") PIMAGE_TLS_CALLBACK __xl_e = (PIMAGE_TLS_CALLBACK) tls_callback;
++_CRTALLOC(".CRT$XLB") PIMAGE_TLS_CALLBACK __xl_b = (PIMAGE_TLS_CALLBACK) tls_callback;
+-- 
+2.17.1
+
+
+
+_______________________________________________
+Mingw-w64-public mailing list
+Mingw-w64-public@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/mingw-w64-public
+
+From martin@martin.st Wed Oct 28 03:24:50 2020
+Date: Wed, 28 Oct 2020 11:24:51 +0200
+From: Martin Storsjö <martin@martin.st>
+Reply-To: mingw-w64-public@lists.sourceforge.net
+To: mingw-w64-public@lists.sourceforge.net
+Subject: [Mingw-w64-public] [PATCH 3/3] winpthread: Always run destructors via the TLS callback
+
+Don't run the destructors directly after executing the user thread
+function. This allows running other TLS callbacks (e.g. tls_atexit.c)
+before running destructors registered via pthread_key_create (which
+can be used by the libgcc emutls allocations, if libgcc is built with
+the pthread thread model).
+
+Signed-off-by: Martin Storsjö <martin@martin.st>
+---
+ mingw-w64-libraries/winpthreads/src/thread.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/mingw-w64-libraries/winpthreads/src/thread.c b/mingw-w64-libraries/winpthreads/src/thread.c
+index 55361aec9..6803630fb 100644
+--- a/mingw-w64-libraries/winpthreads/src/thread.c
++++ b/mingw-w64-libraries/winpthreads/src/thread.c
+@@ -496,6 +496,7 @@ __dyn_tls_pthread (HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved)
+ 	  if (t->evStart)
+ 	    CloseHandle (t->evStart);
+ 	  t->evStart = NULL;
++	  _pthread_cleanup_dest (t->x);
+ 	  pthread_mutex_destroy (&t->p_clock);
+ 	  replace_spin_keys (&t->spin_keys, new_spin_keys);
+ 	}
+@@ -1084,7 +1085,6 @@ pthread_exit (void *res)
+ 
+   id->ret_arg = res;
+ 
+-  _pthread_cleanup_dest (id->x);
+   if (id->thread_noposix == 0)
+     longjmp(id->jb, 1);
+ 
+@@ -1093,6 +1093,7 @@ pthread_exit (void *res)
+     {
+       if (!t->h)
+ 	{
++	  _pthread_cleanup_dest (id->x);
+ 	  t->valid = DEAD_THREAD;
+ 	  if (t->evStart)
+ 	    CloseHandle (t->evStart);
+@@ -1111,6 +1112,7 @@ pthread_exit (void *res)
+ 	  t->evStart = NULL;
+ 	  if ((t->p_state & PTHREAD_CREATE_DETACHED) == PTHREAD_CREATE_DETACHED)
+ 	    {
++	      _pthread_cleanup_dest (id->x);
+ 	      t->valid = DEAD_THREAD;
+ 	      CloseHandle (t->h);
+ 	      t->h = NULL;
+@@ -1536,8 +1538,6 @@ pthread_create_wrapper (void *args)
+       #endif
+       pthread_mutex_lock (&mtx_pthr_locked);
+       tv->ret_arg = (void*) trslt;
+-      /* Clean up destructors */
+-      _pthread_cleanup_dest(tv->x);
+     }
+   else
+     pthread_mutex_lock (&mtx_pthr_locked);
+-- 
+2.17.1
+
+
+
+_______________________________________________
+Mingw-w64-public mailing list
+Mingw-w64-public@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/mingw-w64-public
+From cb9ab19e6f0238c9085fcbb8fd083a978bb0d69f Mon Sep 17 00:00:00 2001
+From: Jeremy Drake <jeremyd2019@users.sourceforge.net>
+Date: Tue, 27 Oct 2020 13:42:54 -0700
+Subject: [PATCH] fix __cxa_thread_atexit destructors on GCC.
+
+The TLS callback function for DLL_THREAD_DETACH is called after emutls
+has already cleaned up for the thread, so the tls_dtors were always NULL
+at that time.  Work around this by using Windows native TlsAlloc and
+friends.
+
+Fixes https://sourceforge.net/p/mingw-w64/bugs/859/
+
+Signed-off-by: Jeremy Drake <jeremyd2019@users.sourceforge.net>
+---
+ mingw-w64-crt/crt/tls_atexit.c | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
+
+diff --git a/mingw-w64-crt/crt/tls_atexit.c b/mingw-w64-crt/crt/tls_atexit.c
+index 1241b567..78770ec7 100644
+--- a/mingw-w64-crt/crt/tls_atexit.c
++++ b/mingw-w64-crt/crt/tls_atexit.c
+@@ -35,7 +35,7 @@ extern char __mingw_module_is_dll;
+ static CRITICAL_SECTION lock;
+ static int inited = 0;
+ static dtor_obj *global_dtors = NULL;
+-static __thread dtor_obj *tls_dtors = NULL;
++static DWORD tls_dtors_slot = TLS_OUT_OF_INDEXES;
+ 
+ int __mingw_cxa_atexit(dtor_fn dtor, void *obj, void *dso) {
+   if (!inited)
+@@ -73,24 +73,29 @@ int __mingw_cxa_thread_atexit(dtor_fn dtor, void *obj, void *dso) {
+     return 1;
+   handler->dtor = dtor;
+   handler->obj = obj;
+-  handler->next = tls_dtors;
+-  tls_dtors = handler;
++  handler->next = (dtor_obj *)TlsGetValue(tls_dtors_slot);
++  TlsSetValue(tls_dtors_slot, handler);
+   return 0;
+ }
+ 
+ static void WINAPI tls_atexit_callback(HANDLE __UNUSED_PARAM(hDllHandle), DWORD dwReason, LPVOID __UNUSED_PARAM(lpReserved)) {
+   if (dwReason == DLL_PROCESS_DETACH) {
+-    run_dtor_list(&tls_dtors);
++    dtor_obj * p = (dtor_obj *)TlsGetValue(tls_dtors_slot);
++    run_dtor_list(&p);
++    TlsSetValue(tls_dtors_slot, p);
++    TlsFree(tls_dtors_slot);
+     run_dtor_list(&global_dtors);
+   }
+ }
+ 
+ static void WINAPI tls_callback(HANDLE hDllHandle, DWORD dwReason, LPVOID __UNUSED_PARAM(lpReserved)) {
++  dtor_obj * p;
+   switch (dwReason) {
+   case DLL_PROCESS_ATTACH:
+     if (inited == 0) {
+       InitializeCriticalSection(&lock);
+       __dso_handle = hDllHandle;
++      tls_dtors_slot = TlsAlloc();
+       /*
+        * We can only call _register_thread_local_exe_atexit_callback once
+        * in a process; if we call it a second time the process terminates.
+@@ -129,7 +134,9 @@ static void WINAPI tls_callback(HANDLE hDllHandle, DWORD dwReason, LPVOID __UNUS
+      * linked CRT (which still runs TLS destructors for the main thread).
+      */
+     if (__mingw_module_is_dll) {
+-      run_dtor_list(&tls_dtors);
++      p = (dtor_obj *)TlsGetValue(tls_dtors_slot);
++      run_dtor_list(&p);
++      TlsSetValue(tls_dtors_slot, p);
+       /* For DLLs, run dtors when detached. For EXEs, run dtors via the
+        * thread local atexit callback, to make sure they don't run when
+        * exiting the process with _exit or ExitProcess. */
+@@ -143,7 +150,9 @@ static void WINAPI tls_callback(HANDLE hDllHandle, DWORD dwReason, LPVOID __UNUS
+   case DLL_THREAD_ATTACH:
+     break;
+   case DLL_THREAD_DETACH:
+-    run_dtor_list(&tls_dtors);
++    p = (dtor_obj *)TlsGetValue(tls_dtors_slot);
++    run_dtor_list(&p);
++    TlsSetValue(tls_dtors_slot, p);
+     break;
+   }
+ }
+-- 
+2.29.1
+

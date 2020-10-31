@@ -22,7 +22,7 @@ pkgver=10.2.0
 #_majorver=${pkgver:0:1}
 #_sourcedir=${_realname}-${_majorver}-${_snapshot}
 _sourcedir=${_realname}-${pkgver}
-pkgrel=5
+pkgrel=6
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 url="https://gcc.gnu.org"
@@ -63,6 +63,7 @@ source=("https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver%%+*}/${_realname}-${p
         0015-makedeps-properly-handle-win-paths.patch
         0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch
         0021-gcc-config-i386-mingw32.h-Ensure-lmsvcrt-precede-lke.patch
+        0022-gcc-config-i386-mingw32.h-use-cxa-atexit.patch
         0130-libstdc++-in-out.patch
         0140-gcc-8.2.0-diagnostic-color.patch
         0150-gcc-10.2.0-libgcc-ldflags.patch
@@ -85,6 +86,7 @@ sha256sums=('b8dd4368bb9c7f0b98188317ee0254dd8cc99d1e3a18d0ff146c855fe16c1d8c'
             '4233a8d893787413b316de3ac320fd65c46844d463b98c0a98fdc17100cca505'
             '276ecc392c777d4b17d771a987e80dca50ff25d8f65671d5de139be73997064b'
             'c7359f4c7015bc1fb02bc13449fa9826669273bd1f0663ba898decb67e8487fc'
+            '642c12e0dcc0a7f4c42edc75b30130ec66d5fb345f5b71e8f8e8e97d907cb1e8'
             '055289699c4222ef0b8125abdc8c9ceeff0712876c86e6d552a056fbacc14284'
             '5240a9e731b45c17a164066c7eb193c1fbee9fd8d9a2a5afa2edbcde9510da47'
             '7f0b4e45d933e18c9d8bd2afcd83e4f52e97e2e25dd41bfa0cba755c70e591c7'
@@ -134,7 +136,8 @@ prepare() {
     0014-gcc-9-branch-clone_function_name_1-Retain-any-stdcall-suffix.patch \
     0015-makedeps-properly-handle-win-paths.patch \
     0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch \
-    0021-gcc-config-i386-mingw32.h-Ensure-lmsvcrt-precede-lke.patch
+    0021-gcc-config-i386-mingw32.h-Ensure-lmsvcrt-precede-lke.patch \
+    0022-gcc-config-i386-mingw32.h-use-cxa-atexit.patch
 
   apply_patch_with_msg \
     0130-libstdc++-in-out.patch

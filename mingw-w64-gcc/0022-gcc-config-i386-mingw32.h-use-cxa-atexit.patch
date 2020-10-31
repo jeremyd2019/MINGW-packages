@@ -1,0 +1,13 @@
+--- gcc-10.2.0/gcc/config/i386/mingw32.h.orig	2020-10-31 11:52:15.866511300 -0700
++++ gcc-10.2.0/gcc/config/i386/mingw32.h	2020-10-31 11:52:34.473695100 -0700
+@@ -237,10 +237,6 @@
+ #undef GTM_SELF_SPECS
+ #define GTM_SELF_SPECS "%{fgnu-tm:-mthreads -pthread}"
+ 
+-/* mingw32 atexit function is safe to use in shared libraries.  Use it
+-   to register C++ static destructors.  */
+-#define TARGET_CXX_USE_ATEXIT_FOR_CXA_ATEXIT hook_bool_void_true
+-
+ /* Contains a pointer to type target_ovr_attr defining the target specific
+    overrides of format attributes.  See c-format.h for structure
+    definition.  */

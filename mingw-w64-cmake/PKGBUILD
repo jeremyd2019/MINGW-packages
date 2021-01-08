@@ -13,10 +13,10 @@ url="https://www.cmake.org/"
 license=("MIT")
 makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
              "${MINGW_PACKAGE_PREFIX}-bzip2"
-             "${MINGW_PACKAGE_PREFIX}-ncurses"
-             "${MINGW_PACKAGE_PREFIX}-python-sphinx"
+             #"${MINGW_PACKAGE_PREFIX}-ncurses"
+             #"${MINGW_PACKAGE_PREFIX}-python-sphinx"
              "${MINGW_PACKAGE_PREFIX}-xz"
-             "${MINGW_PACKAGE_PREFIX}-zstd"
+             #"${MINGW_PACKAGE_PREFIX}-zstd"
              $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]] || \
                [[ ${MINGW_PACKAGE_PREFIX} == *-ucrt-* ]] || \
                echo "${MINGW_PACKAGE_PREFIX}-emacs" \
@@ -24,10 +24,10 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
 
 depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs"
          "${MINGW_PACKAGE_PREFIX}-pkg-config"
-         "${MINGW_PACKAGE_PREFIX}-curl"
+         #"${MINGW_PACKAGE_PREFIX}-curl"
          "${MINGW_PACKAGE_PREFIX}-expat"
-         "${MINGW_PACKAGE_PREFIX}-jsoncpp"
-         "${MINGW_PACKAGE_PREFIX}-libarchive"
+         #"${MINGW_PACKAGE_PREFIX}-jsoncpp"
+         #"${MINGW_PACKAGE_PREFIX}-libarchive"
          "${MINGW_PACKAGE_PREFIX}-libuv"
          "${MINGW_PACKAGE_PREFIX}-rhash"
          "${MINGW_PACKAGE_PREFIX}-zlib")
@@ -91,12 +91,15 @@ build() {
   MSYSTEM=MINGW FC=${MINGW_PREFIX}/bin/gfortran.exe \
     "${srcdir}"/${_realname}-${pkgver}/configure  \
     --prefix=${MINGW_PREFIX}                      \
-    --system-libs                                 \
     --parallel=${NUMBER_OF_PROCESSORS}            \
     --mandir=share/man                            \
     --docdir=share/doc/cmake                      \
-    --sphinx-man --sphinx-html                    \
-    --bootstrap-system-jsoncpp                    \
+    --system-expat                                \
+    --system-zlib                                 \
+    --system-bzip2                                \
+    --system-liblzma                              \
+    --system-librhash                             \
+    --system-libuv                                \
     --bootstrap-system-libuv                      \
     --bootstrap-system-librhash                   \
     ${_qtconfig[@]}

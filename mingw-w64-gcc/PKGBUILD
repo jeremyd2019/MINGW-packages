@@ -46,7 +46,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-zstd")
 #checkdepends=('dejagnu')
 optdepends=()
-options=('staticlibs' '!emptydirs') # '!strip' 'debug')
+options=('staticlibs' '!emptydirs' '!strip' 'debug')
 source=("https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver%%+*}/${_realname}-${pkgver}.tar.xz"{,.sig}
         #https://www.mirrorservice.org/sites/sourceware.org/pub/gcc/snapshots/${_majorver}-${_snapshot}/gcc-${_majorver}-${_snapshot}.tar.xz
         "gdbinit"

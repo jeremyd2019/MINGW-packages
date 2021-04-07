@@ -11,7 +11,6 @@ mingw_arch=('mingw32' 'mingw64' 'ucrt64')
 url='https://facebook.github.io/zstd/'
 license=('BSD')
 makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
-             "${MINGW_PACKAGE_PREFIX}-ninja"
              "${MINGW_PACKAGE_PREFIX}-cmake")
 source=("https://github.com/facebook/zstd/releases/download/v${pkgver}/${_realname}-${pkgver}.tar.gz"
         zstd-1.4.0-fileio-mingw.patch)
@@ -36,7 +35,7 @@ build() {
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
     ${MINGW_PREFIX}/bin/cmake \
-      -GNinja \
+      -G"MSYS Makefiles" \
       -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
       "${extra_config[@]}" \
       -DZSTD_BUILD_CONTRIB=ON \

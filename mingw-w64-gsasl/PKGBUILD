@@ -4,13 +4,14 @@ _realname=gsasl
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=1.10.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Simple Authentication and Security Layer framework and a few common SASL mechanisms (mingw-w64)"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
 url="https://josefsson.org/gsasl/"
 license=("GPL")
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc")
+makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
+             "${MINGW_PACKAGE_PREFIX}-gtk-doc")
 options=('strip' 'staticlibs')
 depends=("${MINGW_PACKAGE_PREFIX}-gss"
          "${MINGW_PACKAGE_PREFIX}-gnutls"
@@ -29,6 +30,8 @@ sha256sums=('85bcbd8ee6095ade7870263a28ebcb8832f541ea7393975494926015c07568d3'
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
   patch -p1 -i ${srcdir}/gsasl-avoid-conflicting-types.patch
+  # autoreconf to get updated libtool files with clang support
+  autoreconf -fiv
 }
 
 build() {

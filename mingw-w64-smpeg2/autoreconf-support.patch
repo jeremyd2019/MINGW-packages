@@ -1,0 +1,26 @@
+Index: configure.in
+===================================================================
+--- a/configure.in	(revision 413)
++++ b/configure.in	(working copy)
+ AC_CANONICAL_HOST
+ 
+ dnl Setup for automake
+-AM_INIT_AUTOMAKE(smpeg2, $VERSION)
++AM_INIT_AUTOMAKE(smpeg2, $VERSION, [foreign])
+ 
+ dnl Check for tools
+ 
+Index: Makefile.am
+===================================================================
+--- a/Makefile.am	(revision 413)
++++ b/Makefile.am	(working copy)
+@@ -1,6 +1,9 @@
+ 
+ ## Makefile.am for the smpeg library
+ 
++AUTOMAKE_OPTIONS=foreign
++ACLOCAL_AMFLAGS=-I acinclude
++
+ bin_SCRIPTS = smpeg2-config
+ 
+ CCLD = $(CXXLD)

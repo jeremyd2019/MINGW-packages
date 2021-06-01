@@ -4,7 +4,7 @@ _realname=smpeg2
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=2.0.0
-pkgrel=5
+pkgrel=6
 pkgdesc="SDL2 MPEG Player Library (mingw-w64)"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
@@ -13,12 +13,16 @@ license=("LGPL")
 makedepends=("${MINGW_PACKAGE_PREFIX}-gcc" "subversion")
 depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs" "${MINGW_PACKAGE_PREFIX}-SDL2")
 options=('staticlibs' 'strip')
-source=("${_realname}::svn://svn.icculus.org/smpeg/tags/release_${pkgver//./_}")
-sha256sums=('SKIP')
+source=("${_realname}::svn://svn.icculus.org/smpeg/tags/release_${pkgver//./_}"
+        "autoreconf-support.patch")
+sha256sums=('SKIP'
+            '240fcb0a0e9f1d26b1f5cebc59dc8aff0151334e55d322531428badfeacd2bf9')
 
 prepare() {
   cd "${srcdir}"/${_realname}
-  ./autogen.sh
+  patch -Np1 -i "${srcdir}/autoreconf-support.patch"
+  # autoreconf to get updated libtool files with clang support
+  autoreconf -fiv -I acinclude
 }
 
 build() {

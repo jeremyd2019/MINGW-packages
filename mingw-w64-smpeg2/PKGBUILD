@@ -18,6 +18,10 @@ sha256sums=('SKIP')
 
 prepare() {
   cd "${srcdir}"/${_realname}
+  # nasty hack
+  cp -f /usr/share/libtool/build-aux/ltmain.sh .
+  cp -f /usr/share/aclocal/lt*.m4 acinclude/
+  cp -f /usr/share/aclocal/libtool.m4 acinclude/
   ./autogen.sh
 }
 

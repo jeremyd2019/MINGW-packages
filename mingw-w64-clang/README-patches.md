@@ -18,6 +18,7 @@ Legend:
 - `"0012-windres.patch"` :arrow_down_small:
 - `"0013-Dlltool-use-default-LLVM-target-unless-specified.patch"` :x:
 - `"0014-llvm-rc-Don-t-rewrite-the-arch-in-the-default-triple.patch"` :arrow_down_small:
+- `"0015-x86FPStackifier-fix.patch"` :grey_question: - https://bugs.llvm.org/show_bug.cgi?id=50782#c10
 - `"0101-Disable-fPIC-errors.patch"` :x:
 - `"0103-Use-posix-style-path-separators-with-MinGW.patch"` :x::x::x: - this one is really imporant
 - `"0104-link-pthread-with-mingw.patch"` :grey_exclamation:

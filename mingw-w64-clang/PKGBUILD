@@ -77,6 +77,7 @@ source=("https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver
         "0012-windres.patch"
         "0013-Dlltool-use-default-LLVM-target-unless-specified.patch"
         "0014-llvm-rc-Don-t-rewrite-the-arch-in-the-default-triple.patch"
+        "0015-x86FPStackifier-fix.patch"
         "0101-Disable-fPIC-errors.patch"
         "0103-Use-posix-style-path-separators-with-MinGW.patch"
         "0104-link-pthread-with-mingw.patch"
@@ -122,6 +123,7 @@ sha256sums=('9ed1688943a4402d7c904cc4515798cdb20080066efa010fe7e1f2551b423628'
             'e8a6c9e32848dcb9bc16e509516556ced4a5fe888d9b92929e83d0b55c05647b'
             '567307cb8d2a9072ba521b9daaf448d73ca213d9a4f2f4e07485f4be4ac9881d'
             '9152929e1ef94172c11d6d1e4f4c8c106032691a34bfab85ca2b165262092a8e'
+            'af20f7e3cd0f9ddb926816b7dd7d6d019f1c5ba07806bd217c8852fa2bacae02'
             '63b2bda6a487ec69e257c3b7a14d71f6bec649fca058a5a54804f213d45c7c70'
             '2d1dc7f7cd6bd61f275cd0be6650f3086aee622074ac786ff5a921bf8ecaada2'
             '715cb8862753854b2d9256e0b70003e2d1f57083d83eaeaf5a095fc72b8a4e26'
@@ -171,7 +173,8 @@ prepare() {
     "0011-nm-version-option.patch" \
     "0012-windres.patch" \
     "0013-Dlltool-use-default-LLVM-target-unless-specified.patch" \
-    "0014-llvm-rc-Don-t-rewrite-the-arch-in-the-default-triple.patch"
+    "0014-llvm-rc-Don-t-rewrite-the-arch-in-the-default-triple.patch" \
+    "0015-x86FPStackifier-fix.patch"
 
   if (( ! _clangprefix )); then
     apply_patch_with_msg \

@@ -48,7 +48,7 @@ jobs:
       - name: Add staging repo
         shell: msys2 {0}
         run: |
-          sed -i '1s|^|[staging]\nServer = https://repo.msys2.org/staging/\nSigLevel = Never\n[clang32]\nInclude = /etc/pacman.d/mirrorlist.clang32\n|' /etc/pacman.conf
+          sed -i '1s|^|[staging]\nServer = https://repo.msys2.org/staging/\nSigLevel = Never\n[clang32]\nInclude = /etc/pacman.d/mirrorlist.mingw\n[clangarm64]\nInclude = /etc/pacman.d/mirrorlist.mingw\n|' /etc/pacman.conf
 
       - name: Update using staging
         run: |

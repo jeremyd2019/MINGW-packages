@@ -4,7 +4,7 @@
 # Contributor: Philippe Renon <philippe_renon@yahoo.fr>
 
 _bootstrapping=yes
-if [[ $MINGW_PACKAGE_PREFIX == *-clang-aarch64 ]]; then
+if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]]; then
   _bootstrapping=no
 fi
 
@@ -49,7 +49,6 @@ source=("${rust_dist_server}/${_realname}c-${pkgver}-src.tar.gz"{,.asc}
         "https://github.com/rust-lang/compiler-builtins/commit/3f47913bc6414bab4254d49f9f6e7238fecace69.patch"
         "0001-rustc-llvm-fix-libs.patch"
         "0005-win32-config.patch"
-        "0007-clang-subsystem.patch"
         "0008-disable-self-contained.patch"
         "0011-disable-uac-for-installer.patch"
         "0012-vendor-embed-manifest.patch"
@@ -62,7 +61,6 @@ sha256sums=('ff544823a5cb27f2738128577f1e7e00ee8f4c83f2a348781ae4fc355e91d5a9'
             'b888615732b1c9b0d4e8459cc9bd7ffb8afbf13bab840c2d345dc1492a63c9c3'
             '7cb1773c288ffb1c1e751edc49b1890c84bf9c362742bc5225d19d474edb73a0'
             '7d1c4e49524b835a8eadc961b39f5594b12a522a1e24368999be2c7e85399e4e'
-            '46b63be79e4f2d5da2b183ed963429bce22966227bf24a73b158d23875841b11'
             '7a3b5722ff576b0661f36796f088dee4ce318b5dbc3fdcd65b48972de68a0edf'
             '761d73328d9695a7a2bd2a10be8225f4a56801fee54cbb51c0841b7f16e2bde6'
             '23fc45f4e718770375be1c5196f035075de16d25e8f895100a3d1d2492995f86'
@@ -108,10 +106,6 @@ prepare() {
     0005-win32-config.patch \
     0008-disable-self-contained.patch
 
-  if [[ $MINGW_PACKAGE_PREFIX == *-clang-i686 || $MINGW_PACKAGE_PREFIX == *-clang-x86_64 ]]; then
-    apply_patch_with_msg \
-      0007-clang-subsystem.patch
-  fi
   if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]]; then
     apply_patch_with_msg \
       0011-disable-uac-for-installer.patch
@@ -151,7 +145,7 @@ build() {
       "build/cache/${_stage0date}/"
   fi
 
-  if [[ $MINGW_PACKAGE_PREFIX == *-clang-aarch64 ]]; then
+  if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]]; then
     # We have to do the following because rust doesn't count x86_64-w64-mingw32 as a target triple
     OSTYPE="$CARCH-pc-windows-gnullvm"
 

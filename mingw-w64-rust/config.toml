@@ -13,6 +13,7 @@ build = "%OSTYPE%"
 host = ["%OSTYPE%"]
 target = [
   "%OSTYPE%",
+  "%OSTYPE%llvm",
 ]
 python = "%PREFIX%/bin/python.exe"
 locked-deps = true
@@ -51,6 +52,9 @@ compression-formats = ["gz"]
 include-mingw-linker = false
 
 [target.%OSTYPE%]
+llvm-config = "%PREFIX%/bin/llvm-config.exe"
+
+[target.%OSTYPE%llvm]
 llvm-config = "%PREFIX%/bin/llvm-config.exe"
 
 [target.wasm32-unknown-unknown]

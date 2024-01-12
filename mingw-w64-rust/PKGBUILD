@@ -4,7 +4,7 @@
 # Contributor: Philippe Renon <philippe_renon@yahoo.fr>
 
 _bootstrapping=yes
-if [[ $MINGW_PACKAGE_PREFIX == *-clang-aarch64 ]]; then
+if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]]; then
   _bootstrapping=no
 fi
 
@@ -59,7 +59,7 @@ noextract=(${_realname}c-${pkgver}-src.tar.gz)
 sha256sums=('6f606c193f230f6b2cae4576f7b24d50f5f9b25dff11dbf9b22f787d3521d672'
             'SKIP'
             '24ef6d949c0b5b1940c1d6a7aad78d86012152fb8845a1644bc939350d7b75e2'
-            '829d72862663cb2002f57aee3471b496137f9093e3330ed8f5db80f37663eaf7'
+            'a6c5ae55a316787a4fbb3f881845c54986869d749e6671339c042d3915da89b7'
             '7cb1773c288ffb1c1e751edc49b1890c84bf9c362742bc5225d19d474edb73a0'
             '56882f1a0f1404c10c7726d6cc37444f2b343e72b969badfcb43760f80db0f32'
             '7d1c4e49524b835a8eadc961b39f5594b12a522a1e24368999be2c7e85399e4e'
@@ -159,6 +159,7 @@ build() {
 
     # Otherwise it uses gcc during bootstrap, even when we build for clang
     export CARGO_TARGET_${CARCH^^}_PC_WINDOWS_GNU_LINKER="${CC}"
+    export CARGO_TARGET_${CARCH^^}_PC_WINDOWS_GNULLVM_LINKER="${CC}"
   fi
 
   # avoid OOMing in some cases
@@ -171,6 +172,7 @@ build() {
 
     # Add options back for target $OSTYPE
     export CFLAGS_${OSTYPE//-/_}="$_unsupported_options"
+    export CFLAGS_${OSTYPE//-/_}LLVM="$_unsupported_options"
   fi
 
   # The rust build uses git if it's available but can't handle cygwin git paths

@@ -4,7 +4,7 @@
 # Contributor: Philippe Renon <philippe_renon@yahoo.fr>
 
 _bootstrapping=yes
-if [[ $MINGW_PACKAGE_PREFIX == *-clang-aarch64 ]]; then
+if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]]; then
   _bootstrapping=no
 fi
 
@@ -163,6 +163,7 @@ build() {
 
     # Otherwise it uses gcc during bootstrap, even when we build for clang
     export CARGO_TARGET_${CARCH^^}_PC_WINDOWS_GNU_LINKER="${CC}"
+    export CARGO_TARGET_${CARCH^^}_PC_WINDOWS_GNULLVM_LINKER="${CC}"
   fi
 
   local -a _rust_conf=()
@@ -194,7 +195,7 @@ build() {
     --localstatedir=${MINGW_PREFIX}/var/lib \
     --build=$OSTYPE \
     --host=$OSTYPE \
-    --target=$OSTYPE \
+    --target=$OSTYPE,${OSTYPE}llvm \
     --release-channel=stable \
     --release-description="Rev${pkgrel}, Built by MSYS2 project" \
     --enable-ninja \

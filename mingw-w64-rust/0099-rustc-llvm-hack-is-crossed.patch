@@ -1,0 +1,11 @@
+--- rustc-1.75.0-src/compiler/rustc_llvm/build.rs.o	2024-01-11 21:58:54.290455300 -0800
++++ rustc-1.75.0-src/compiler/rustc_llvm/build.rs	2024-01-11 22:01:24.610564700 -0800
+@@ -158,7 +158,7 @@
+     // are gated on `if !is_crossed`
+     let target = env::var("TARGET").expect("TARGET was not set");
+     let host = env::var("HOST").expect("HOST was not set");
+-    let is_crossed = target != host;
++    let is_crossed = false; // target != host;
+ 
+     let components = output(Command::new(&llvm_config).arg("--components"));
+     let mut components = components.split_whitespace().collect::<Vec<_>>();

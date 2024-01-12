@@ -4,7 +4,7 @@
 # Contributor: Philippe Renon <philippe_renon@yahoo.fr>
 
 _bootstrapping=yes
-if [[ $MINGW_PACKAGE_PREFIX == *-clang-aarch64 ]]; then
+if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]]; then
   _bootstrapping=no
 fi
 
@@ -108,10 +108,6 @@ prepare() {
     0005-win32-config.patch \
     0008-disable-self-contained.patch
 
-  if [[ $MINGW_PACKAGE_PREFIX == *-clang-i686 || $MINGW_PACKAGE_PREFIX == *-clang-x86_64 ]]; then
-    apply_patch_with_msg \
-      0007-clang-subsystem.patch
-  fi
   if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]]; then
     apply_patch_with_msg \
       0011-disable-uac-for-installer.patch
@@ -147,7 +143,7 @@ build() {
       "build/cache/${_stage0date}/"
   fi
 
-  if [[ $MINGW_PACKAGE_PREFIX == *-clang-aarch64 ]]; then
+  if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]]; then
     # We have to do the following because rust doesn't count x86_64-w64-mingw32 as a target triple
     OSTYPE="$CARCH-pc-windows-gnullvm"
 

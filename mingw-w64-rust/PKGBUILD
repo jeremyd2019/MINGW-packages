@@ -45,7 +45,8 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-zlib")
 source=("${rust_dist_server}/${_realname}c-${pkgver}-src.tar.gz"{,.asc}
         "${embed_manifest_url}"
-        "https://github.com/rust-lang/compiler-builtins/commit/67c1c0a71a204c089ddae4aec21ec75aa778c11b.patch"
+        "https://github.com/rust-lang/compiler-builtins/commit/d8ab794ed61e2c7c0750f57332a680d5aa8db48c.patch"
+        "https://github.com/rust-lang/compiler-builtins/commit/3f47913bc6414bab4254d49f9f6e7238fecace69.patch"
         "0001-rustc-llvm-fix-libs.patch"
         "0005-win32-config.patch"
         "0007-clang-subsystem.patch"
@@ -59,14 +60,15 @@ noextract=(${_realname}c-${pkgver}-src.tar.gz)
 sha256sums=('c61457ef8f596638fddbc7716778b2f6b99ff12513a3b0f13994c3bc521638c3'
             'SKIP'
             'f1c65919a5f182376ecbfed69f72935abbebad5dc62bd32b2038905258c49453'
-            '1c7be19d408a98fcb94ee77085d34901a30f1fcc1b79bc59d02bc48f655df6eb'
+            '0426bc2a82f56ddabc0646100891bc61b9a57f4b7aec9f45aff40d7ba081db4f'
+            'b888615732b1c9b0d4e8459cc9bd7ffb8afbf13bab840c2d345dc1492a63c9c3'
             '7cb1773c288ffb1c1e751edc49b1890c84bf9c362742bc5225d19d474edb73a0'
             '7d1c4e49524b835a8eadc961b39f5594b12a522a1e24368999be2c7e85399e4e'
             '1f668f4aed56060ec74fd53a39da1fbaef69b84de510d955baf349db672a8d15'
             '7a3b5722ff576b0661f36796f088dee4ce318b5dbc3fdcd65b48972de68a0edf'
             '761d73328d9695a7a2bd2a10be8225f4a56801fee54cbb51c0841b7f16e2bde6'
             '358de2f3e54afbe4aefd401725227becf2468763b7686c5d4fed3b71d1e95ce9'
-            '56e3433e37ecebe4e5eba1be8debb3e34451be22a00e345ee738bbeb37803092'
+            '5c60c8b81fe6537e952d25553e92ef5bb2b1368c10cdadfe8c9809d6bc7f4ffa'
             '435b69f896f97b45108c92e748ef64edbc21566fe61188b643707aa51522d295'
             '5e19556f6cfed0485b84c32de1a2a3f8fe330cb73bc16e2596be4aba3bcb3cd5')
 validpgpkeys=('108F66205EAEB0AAA8DD5E1C85AB96E6FA1BE5FE'  # Rust Language (Tag and Release Signing Key) <rust-key@rust-lang.org>
@@ -124,7 +126,8 @@ prepare() {
   # backport required for CLANG32 to build with compiler-rt 18.1.0
   (cd vendor/compiler_builtins && \
    apply_patch_with_msg \
-     67c1c0a71a204c089ddae4aec21ec75aa778c11b.patch)
+     d8ab794ed61e2c7c0750f57332a680d5aa8db48c.patch \
+     3f47913bc6414bab4254d49f9f6e7238fecace69.patch)
   # still needs to patch .cargo-checksums.json
   apply_patch_with_msg \
     0013-backport-compiler-builtins.patch

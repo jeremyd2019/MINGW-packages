@@ -1,0 +1,10 @@
+--- rustc-1.77.2-src/compiler/rustc_target/src/spec/base/windows_gnu.rs.orig	2024-04-13 12:55:59.933083700 +0200
++++ rustc-1.77.2-src/compiler/rustc_target/src/spec/base/windows_gnu.rs	2024-04-13 12:56:15.789241300 +0200
+@@ -40,6 +40,7 @@
+         //
+         // See https://github.com/rust-lang/rust/pull/47483 for some more details.
+         "-lmsvcrt",
++        "-lmingwex",
+         "-luser32",
+         "-lkernel32",
+     ];

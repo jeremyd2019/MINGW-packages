@@ -1,0 +1,46 @@
+From f7b2e37f7232540d9f2b2dc6e33597fbb74f4f63 Mon Sep 17 00:00:00 2001
+From: Josh Stone <jistone@redhat.com>
+Date: Mon, 8 Apr 2024 15:04:44 -0700
+Subject: [PATCH] Fix UI tests with dist-vendored dependencies
+
+There is already a workaround in `compiletest` to deal with custom
+`CARGO_HOME` using `-Zignore-directory-in-diagnostics-source-blocks={}`.
+A similar need exists when dependencies come from the local `vendor`
+directory, which distro builds often use, so now we ignore that too.
+
+Also, `issue-21763.rs` was normalizing `hashbrown-` paths, presumably
+expecting a version suffix, but the vendored path doesn't include the
+version. Now that matches `[\\/]hashbrown` instead.
+---
+ src/tools/compiletest/src/runtest.rs | 5 +++++
+ tests/ui/issues/issue-21763.rs       | 2 +-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/tools/compiletest/src/runtest.rs b/src/tools/compiletest/src/runtest.rs
+index bb8509fe41377..770496289e2e7 100644
+--- a/src/tools/compiletest/src/runtest.rs
++++ b/src/tools/compiletest/src/runtest.rs
+@@ -2354,6 +2354,11 @@ impl<'test> TestCx<'test> {
+             "ignore-directory-in-diagnostics-source-blocks={}",
+             home::cargo_home().expect("failed to find cargo home").to_str().unwrap()
+         ));
++        // Similarly, vendored sources shouldn't be shown when running from a dist tarball.
++        rustc.arg("-Z").arg(format!(
++            "ignore-directory-in-diagnostics-source-blocks={}",
++            self.config.find_rust_src_root().unwrap().join("vendor").display(),
++        ));
+ 
+         // Optionally prevent default --sysroot if specified in test compile-flags.
+         if !self.props.compile_flags.iter().any(|flag| flag.starts_with("--sysroot"))
+diff --git a/tests/ui/issues/issue-21763.rs b/tests/ui/issues/issue-21763.rs
+index a349253063c02..1d0a0705cbbd9 100644
+--- a/tests/ui/issues/issue-21763.rs
++++ b/tests/ui/issues/issue-21763.rs
+@@ -1,6 +1,6 @@
+ // Regression test for HashMap only impl'ing Send/Sync if its contents do
+ 
+-// normalize-stderr-test: "\S+hashbrown-\S+" -> "$$HASHBROWN_SRC_LOCATION"
++// normalize-stderr-test: "\S+[\\/]hashbrown\S+" -> "$$HASHBROWN_SRC_LOCATION"
+ 
+ use std::collections::HashMap;
+ use std::rc::Rc;

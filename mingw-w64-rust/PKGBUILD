@@ -47,6 +47,7 @@ source=("${rust_dist_server}/${_realname}c-${pkgver}-src.tar.gz"{,.asc}
         "${embed_manifest_url}"
         "https://github.com/rust-lang/compiler-builtins/commit/d8ab794ed61e2c7c0750f57332a680d5aa8db48c.patch"
         "https://github.com/rust-lang/compiler-builtins/commit/3f47913bc6414bab4254d49f9f6e7238fecace69.patch"
+        "https://github.com/rust-lang/rust/commit/8eb48b4f4c6e3d48f2600159a75184ec4d74b249.patch"
         "0001-rustc-llvm-fix-libs.patch"
         "0005-win32-config.patch"
         "0007-clang-subsystem.patch"
@@ -62,6 +63,7 @@ sha256sums=('c61457ef8f596638fddbc7716778b2f6b99ff12513a3b0f13994c3bc521638c3'
             'f1c65919a5f182376ecbfed69f72935abbebad5dc62bd32b2038905258c49453'
             '0426bc2a82f56ddabc0646100891bc61b9a57f4b7aec9f45aff40d7ba081db4f'
             'b888615732b1c9b0d4e8459cc9bd7ffb8afbf13bab840c2d345dc1492a63c9c3'
+            'fc620675257642bb923cb23650aab49dea877e4635dcbf2c33eaf79c9ec8db63'
             '7cb1773c288ffb1c1e751edc49b1890c84bf9c362742bc5225d19d474edb73a0'
             '7d1c4e49524b835a8eadc961b39f5594b12a522a1e24368999be2c7e85399e4e'
             '1f668f4aed56060ec74fd53a39da1fbaef69b84de510d955baf349db672a8d15'
@@ -94,6 +96,14 @@ apply_patch_with_msg() {
   do
     msg2 "Applying ${_patch}"
     patch -Nbp1 -i "${srcdir}/${_patch}"
+  done
+}
+
+apply_patch_with_msg_no_backup() {
+  for _patch in "$@"
+  do
+    msg2 "Applying ${_patch}"
+    patch -Np1 -i "${srcdir}/${_patch}"
   done
 }
 # =========================================== #
@@ -132,10 +142,11 @@ prepare() {
   apply_patch_with_msg \
     0013-backport-compiler-builtins.patch
 
-  apply_patch_with_msg \
-    0014-fix-vendored-test.patch
-  # tidy complains about *.orig files so delete them
-  rm ${srcdir}/${_realname}c-${pkgver}-src/tests/ui/issues/*.orig
+  # patch tests
+  # tidy complains about *.orig files so do not generate backups
+  apply_patch_with_msg_no_backup \
+    0014-fix-vendored-test.patch \
+    8eb48b4f4c6e3d48f2600159a75184ec4d74b249.patch
 
   if [[ $MSYSTEM == MINGW* ]]; then
     apply_patch_with_msg \

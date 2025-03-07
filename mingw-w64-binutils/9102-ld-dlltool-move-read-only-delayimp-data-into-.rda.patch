@@ -1,0 +1,130 @@
+From c39f04640ac3c1e8d27faedc9946ce5310a0edd8 Mon Sep 17 00:00:00 2001
+From: Jeremy Drake <sourceware-bugzilla@jdrake.com>
+Date: Sat, 8 Mar 2025 13:03:43 -0800
+Subject: [PATCH v2 2/4] ld,dlltool: move read-only delayimp data into .rdata
+
+This allows the delay IAT to be in its own section with nothing else, as
+required by IMAGE_GUARD_DELAYLOAD_IAT_IN_ITS_OWN_SECTION, documented at
+https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#load-configuration-layout
+
+Signed-off-by: Jeremy Drake <sourceware-bugzilla@jdrake.com>
+---
+ binutils/dlltool.c    |  5 +----
+ ld/scripttempl/pe.sc  | 13 ++++++++-----
+ ld/scripttempl/pep.sc | 14 +++++++++-----
+ 3 files changed, 18 insertions(+), 14 deletions(-)
+
+diff --git a/binutils/dlltool.c b/binutils/dlltool.c
+index 0e0138305f4..4b08638f792 100644
+--- a/binutils/dlltool.c
++++ b/binutils/dlltool.c
+@@ -2798,7 +2798,7 @@ make_delay_head (void)
+ 
+   /* Output the delay import descriptor */
+   fprintf (f, "\n%s DELAY_IMPORT_DESCRIPTOR\n", ASM_C);
+-  fprintf (f, ".section\t.text$2\n");
++  fprintf (f, ".section\t.didat$2\n");
+   fprintf (f, "%s __DELAY_IMPORT_DESCRIPTOR_%s\n", ASM_GLOBAL,imp_name_lab);
+   fprintf (f, "__DELAY_IMPORT_DESCRIPTOR_%s:\n", imp_name_lab);
+   fprintf (f, "\t%s 1\t%s grAttrs\n", ASM_LONG, ASM_C);
+@@ -2841,12 +2841,9 @@ make_delay_head (void)
+       fprintf (f, "\t%s\t0\n", ASM_LONG);
+       if (create_for_pep)
+ 	fprintf (f, "\t%s\t0\n", ASM_LONG);
+-      fprintf (f, "\t.section\t.didat$4\n");
+       fprintf (f, "__INT_%s:\n", imp_name_lab);
+     }
+ 
+-  fprintf (f, "\t.section\t.didat$2\n");
+-
+   fclose (f);
+ 
+   assemble_file (TMP_HEAD_S, TMP_HEAD_O);
+diff --git a/ld/scripttempl/pe.sc b/ld/scripttempl/pe.sc
+index 8bc20674c7f..8fb98b2c06e 100644
+--- a/ld/scripttempl/pe.sc
++++ b/ld/scripttempl/pe.sc
+@@ -40,10 +40,12 @@ if test "${RELOCATING}"; then
+     KEEP (SORT(*)(.idata$6))
+     KEEP (SORT(*)(.idata$7))'
+   R_DIDAT234='
++    __DELAY_IMPORT_DIRECTORY_start__ = .;
+     KEEP (SORT(*)(.didat$2))
+     KEEP (SORT(*)(.didat$3))
++    __DELAY_IMPORT_DIRECTORY_end__ = .;
+     /* These zeroes mark the end of the import list.  */
+-    LONG (0); LONG (0); LONG (0); LONG (0); LONG (0);
++    . += (__DELAY_IMPORT_DIRECTORY_end__ - __DELAY_IMPORT_DIRECTORY_start__) ? 8*4 : 0;
+     KEEP (SORT(*)(.didat$4))'
+   R_DIDAT5='KEEP (SORT(*)(.didat$5))'
+   R_DIDAT67='
+@@ -144,6 +146,11 @@ SECTIONS
+     ${RELOCATING+__rt_psrelocs_start = .;}
+     ${RELOCATING+KEEP(*(.rdata_runtime_pseudo_reloc))}
+     ${RELOCATING+__rt_psrelocs_end = .;}
++    /* read-only parts of .didat */
++    /* This cannot currently be handled with grouped sections.
++	See pe.em:sort_sections.  */
++    ${R_DIDAT234}
++    ${R_DIDAT67}
+ 
+     /* .ctors & .dtors */
+     ${CONSTRUCTING+
+@@ -261,11 +268,7 @@ SECTIONS
+   {
+     /* This cannot currently be handled with grouped sections.
+ 	See pe.em:sort_sections.  */
+-    ${R_DIDAT234}
+-    ${RELOCATING+__DELAY_IAT_start__ = .;}
+     ${R_DIDAT5}
+-    ${RELOCATING+__DELAY_IAT_end__ = .;}
+-    ${R_DIDAT67}
+   }
+ 
+   /* Windows TLS expects .tls\$AAA to be at the start and .tls\$ZZZ to be
+diff --git a/ld/scripttempl/pep.sc b/ld/scripttempl/pep.sc
+index a7304b29cd6..841ee352f73 100644
+--- a/ld/scripttempl/pep.sc
++++ b/ld/scripttempl/pep.sc
+@@ -41,10 +41,12 @@ if test "${RELOCATING}"; then
+     KEEP (SORT(*)(.idata$6))
+     KEEP (SORT(*)(.idata$7))'
+   R_DIDAT234='
++    __DELAY_IMPORT_DIRECTORY_start__ = .;
+     KEEP (SORT(*)(.didat$2))
+     KEEP (SORT(*)(.didat$3))
++    __DELAY_IMPORT_DIRECTORY_end__ = .;
+     /* These zeroes mark the end of the import list.  */
+-    LONG (0); LONG (0); LONG (0); LONG (0); LONG (0);
++    . += (__DELAY_IMPORT_DIRECTORY_end__ - __DELAY_IMPORT_DIRECTORY_start__) ? 8*4 : 0;
+     . = ALIGN(8);
+     KEEP (SORT(*)(.didat$4))'
+   R_DIDAT5='SORT(*)(.didat$5)'
+@@ -146,6 +148,12 @@ SECTIONS
+     ${RELOCATING+__rt_psrelocs_start = .;}
+     ${RELOCATING+KEEP(*(.rdata_runtime_pseudo_reloc))}
+     ${RELOCATING+__rt_psrelocs_end = .;}
++    /* read-only parts of .didat */
++    /* This cannot currently be handled with grouped sections.
++	See pe.em:sort_sections.  */
++    ${RELOCATING+. = ALIGN(8);}
++    ${R_DIDAT234}
++    ${R_DIDAT67}
+ 
+     /* .ctors & .dtors */
+     ${CONSTRUCTING+. = ALIGN(8);}
+@@ -269,11 +277,7 @@ SECTIONS
+   {
+     /* This cannot currently be handled with grouped sections.
+ 	See pep.em:sort_sections.  */
+-    ${R_DIDAT234}
+-    ${RELOCATING+__DELAY_IAT_start__ = .;}
+     ${R_DIDAT5}
+-    ${RELOCATING+__DELAY_IAT_end__ = .;}
+-    ${R_DIDAT67}
+   }
+ 
+   /* Windows TLS expects .tls\$AAA to be at the start and .tls\$ZZZ to be
+-- 
+2.49.0.windows.1
+

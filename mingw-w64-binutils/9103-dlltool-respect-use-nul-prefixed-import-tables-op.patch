@@ -1,0 +1,54 @@
+From 5bc5c6f71fa1b647b6016e5cda37fcb618f20886 Mon Sep 17 00:00:00 2001
+From: Jeremy Drake <sourceware-bugzilla@jdrake.com>
+Date: Sat, 8 Mar 2025 13:03:43 -0800
+Subject: [PATCH v2 3/4] dlltool: respect use-nul-prefixed-import-tables option
+ for delaylib
+
+Noticed the extra zeros while inspecting the output.
+
+Signed-off-by: Jeremy Drake <sourceware-bugzilla@jdrake.com>
+---
+ binutils/dlltool.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
+
+diff --git a/binutils/dlltool.c b/binutils/dlltool.c
+index 4b08638f792..99c651f7f9b 100644
+--- a/binutils/dlltool.c
++++ b/binutils/dlltool.c
+@@ -2827,20 +2827,25 @@ make_delay_head (void)
+   if (!no_idata5)
+     {
+       fprintf (f, "\t.section\t.didat$5\n");
+-      /* NULL terminating list.  */
+-      if (create_for_pep)
+-	fprintf (f, "\t%s\t0\n\t%s\t0\n", ASM_LONG, ASM_LONG);
+-      else
+-	fprintf (f, "\t%s\t0\n", ASM_LONG);
++      if (use_nul_prefixed_import_tables)
++	{
++	  if (create_for_pep)
++	    fprintf (f, "\t%s\t0\n\t%s\t0\n", ASM_LONG, ASM_LONG);
++	  else
++	    fprintf (f, "\t%s\t0\n", ASM_LONG);
++	}
+       fprintf (f, "__IAT_%s:\n", imp_name_lab);
+     }
+ 
+   if (!no_idata4)
+     {
+       fprintf (f, "\t.section\t.didat$4\n");
+-      fprintf (f, "\t%s\t0\n", ASM_LONG);
+-      if (create_for_pep)
+-	fprintf (f, "\t%s\t0\n", ASM_LONG);
++      if (use_nul_prefixed_import_tables)
++	{
++	  fprintf (f, "\t%s\t0\n", ASM_LONG);
++	  if (create_for_pep)
++	    fprintf (f, "\t%s\t0\n", ASM_LONG);
++	}
+       fprintf (f, "__INT_%s:\n", imp_name_lab);
+     }
+ 
+-- 
+2.49.0.windows.1
+

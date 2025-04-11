@@ -55,7 +55,7 @@ source=("${rust_dist_server}/${_realname}c-${pkgver}-src.tar.gz"{,.asc}
 noextract=(${_realname}c-${pkgver}-src.tar.gz)
 sha256sums=('022a27286df67900a044d227d9db69d4732ec3d833e4ffc259c4425ed71eed80'
             'SKIP'
-            'b49cfbb0b240593e6a620fcd016268d860b7bef2d93b01ee58805ebfa2f77ec0'
+            '4d8bb48bba2a0c43090951e862e787eaed845d748464fb366db23b9f282a4df9'
             '7cb1773c288ffb1c1e751edc49b1890c84bf9c362742bc5225d19d474edb73a0'
             '56882f1a0f1404c10c7726d6cc37444f2b343e72b969badfcb43760f80db0f32'
             '98bc3f2bd7371a5b8d14fd7b03bf05574e206d1d9e52bcfbe66d71398504da3c'

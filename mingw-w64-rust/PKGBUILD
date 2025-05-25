@@ -19,8 +19,8 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
          "${MINGW_PACKAGE_PREFIX}-rust-emscripten" \
          "${MINGW_PACKAGE_PREFIX}-rust-cygwin" \
          "${MINGW_PACKAGE_PREFIX}-rust-src"))
-pkgver=1.87.0
-pkgrel=3
+pkgver=1.88.0beta.3
+pkgrel=1
 pkgdesc="Systems programming language focused on safety, speed and concurrency (mingw-w64)"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
@@ -49,15 +49,15 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              $([[ ${CARCH} == i686 ]] || echo "gcc")
              "${MINGW_PACKAGE_PREFIX}-zstd"
              "${MINGW_PACKAGE_PREFIX}-zlib")
-source=("${rust_dist_server}/${_realname}c-${pkgver}-src.tar.gz"{,.asc}
+source=("${rust_dist_server}/${_realname}c-beta-src.tar.gz"{,.asc}
         "bootstrap.toml"
         "wrapper.c"
         "llvm-config-wrapper.c"
         "0001-rustc-llvm-fix-libs.patch"
         "0004-compiler-Use-wasm-ld-for-wasm-targets.patch"
         "0008-disable-self-contained-for-gnu-targets.patch")
-noextract=(${_realname}c-${pkgver}-src.tar.gz)
-sha256sums=('149bb9fd29be592da4e87900fc68f0629a37bf6850b46339dd44434c04fd8e76'
+noextract=(${_realname}c-beta-src.tar.gz)
+sha256sums=('02f24c537ff294411701984d086b0fe1106d68abd355b0ac639debcb2c814dd2'
             'SKIP'
             '7f2a8933364114504b5d5883540c242a4b240e0659a1b38436feb36d6005d35d'
             'dd2cb45dd2dd67794fb41411d692b5f26a43a854cf1859cfedb62e0339e70ab5'
@@ -96,11 +96,11 @@ apply_patch_with_msg() {
 COMPRESSZST+=(--long)
 
 prepare() {
-  plain "Extracting ${_realname}c-${pkgver}-src.tar.gz"
-  tar -xzf ${_realname}c-${pkgver}-src.tar.gz || true
+  plain "Extracting ${_realname}c-beta-src.tar.gz"
+  tar -xzf ${_realname}c-beta-src.tar.gz || true
 
   # 0008-disable-self-contained-for-gnu-targets.patch allows self-contained for non-windows-gnu targets
-  cd ${_realname}c-${pkgver}-src
+  cd ${_realname}c-beta-src
   apply_patch_with_msg \
     0001-rustc-llvm-fix-libs.patch \
     0008-disable-self-contained-for-gnu-targets.patch
@@ -120,7 +120,7 @@ build() {
     done
   fi
 
-  cd "${_realname}c-${pkgver}-src"
+  cd "${_realname}c-beta-src"
 
   # hack to inject the bootstrap compiler
   if [[ $_bootstrapping != "no" && $MINGW_PACKAGE_PREFIX == *-clang-aarch64 ]]; then
@@ -206,7 +206,7 @@ build() {
 }
 
 check() {
-  cd "${_realname}c-${pkgver}-src"
+  cd "${_realname}c-beta-src"
   python x.py test --stage 2 --exclude src/test/debuginfo
 }
 
@@ -225,7 +225,7 @@ package_rust() {
   conflicts=("${MINGW_PACKAGE_PREFIX}-rust-docs")
   replaces=("${MINGW_PACKAGE_PREFIX}-rust-docs")
 
-  cd "${_realname}c-${pkgver}-src/build-${MSYSTEM}"
+  cd "${_realname}c-beta-src/build-${MSYSTEM}"
 
   cp -a dest-rust/* "${pkgdir}"
 
@@ -250,7 +250,7 @@ package_rust-wasm() {
   # strip wasm object files manually due to binutils' lack of support
   options=('!strip')
 
-  cd "${_realname}c-${pkgver}-src/build-${MSYSTEM}"
+  cd "${_realname}c-beta-src/build-${MSYSTEM}"
 
   cp -a dest-wasm/* "${pkgdir}"
 
@@ -266,7 +266,7 @@ package_rust-emscripten() {
   depends=("${MINGW_PACKAGE_PREFIX}-rust" "${MINGW_PACKAGE_PREFIX}-emscripten")
   options=('!strip')
 
-  cd "${_realname}c-${pkgver}-src/build-${MSYSTEM}"
+  cd "${_realname}c-beta-src/build-${MSYSTEM}"
 
   cp -a dest-emscripten/* "${pkgdir}"
 
@@ -289,7 +289,7 @@ package_rust-cygwin() {
   # strip cygwin object files manually
   options=('!strip')
 
-  cd "${_realname}c-${pkgver}-src/build-${MSYSTEM}"
+  cd "${_realname}c-beta-src/build-${MSYSTEM}"
 
   cp -a dest-cygwin/* "${pkgdir}"
 
@@ -304,7 +304,7 @@ package_rust-src() {
   pkgdesc='Source code for the Rust standard library (mingw-w64)'
   depends=("${MINGW_PACKAGE_PREFIX}-rust")
 
-  cd "${_realname}c-${pkgver}-src/build-$MSYSTEM"
+  cd "${_realname}c-beta-src/build-$MSYSTEM"
 
   cp -a dest-src/* "${pkgdir}"
   install -Dm644 ../LICENSE-{APACHE,MIT} -t "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-src"
